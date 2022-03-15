@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import { View, Dimensions, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { Fontisto } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // const SCREEN_WIDTH = Dimensions.get('window').width; 윗 코드와 같은 의미임
 // console.log(SCREEN_WIDTH); // 작동하는 휴대폰의 스크린 사이즈를 알 수 있음 height, width
 const API_KEY = "f1596d4ace391aeaf44396b0bc4b4f9a"; //not secure
+
+const icons = {
+  Clouds: "cloudy",
+  Clear: "day-sunny",
+  Rain: "rains",
+  Snow: "snow",
+  Atmosphere: "cloudy-gusts",
+  Drizzle: "rain",
+  Thunderstorm: "lighting",
+}
 
 export default function App() {
   const [city, setCity] = useState("Loading...");
@@ -42,11 +53,17 @@ export default function App() {
       // 이런 props는 reactnative.dev에 component props에서 찾으면 됨
       >
         {days.length === 0
-          ? (<View style={styles.day}><ActivityIndicator color="white" style={{ marginTop: 10 }} size="large" /></View>)
+          ? (<View style={{ ...styles.day, alignItems: "center" }}>
+            {/* custom style의 한 종류 */}
+            <ActivityIndicator color="white" style={{ marginTop: 10 }} size="large" />
+          </View>)
           : (
             days.map((day, index) => (
               < View key={index} style={styles.day} >
-                <Text style={styles.temp}>{parseFloat(day.temp.day).toFixed(1)}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", width: "100%", justifyContent: "space-between", }}>
+                  <Text style={styles.temp}>{parseFloat(day.temp.day).toFixed(1)}</Text>
+                  <Fontisto name={icons[day.weather[0].main]} size={68} color="white" />
+                </View>
                 <Text style={styles.description}>{day.weather[0].main}</Text>
                 <Text style={styles.tinyText}>{day.weather[0].description}</Text>
               </View>
@@ -72,6 +89,7 @@ const styles = StyleSheet.create({
   cityName: {
     fontSize: 68,
     fontWeight: "500",
+    color: "white",
   },
   weather: {
     // flex: 3,
@@ -80,20 +98,29 @@ const styles = StyleSheet.create({
     // flex: 1,
     // justifyContent: "center",
     width: SCREEN_WIDTH, // day style의 너비를 휴대폰 스크린의 너비와 같게 하여 기온과 날씨를 하나씩만 보일 수 있게 함.
-    alignItems: "center",
+    // alignItems: "center",
     // backgroundColor: "teal",
+    alignItems: "flex-start",
+    paddingHorizontal: 20,
   },
   temp: {
     marginTop: 50,
-    fontSize: 178,
+    fontWeight: "600",
+    fontSize: 100,
+    color: "white",
 
   },
   description: {
-    marginTop: -30,
-    fontSize: 60,
+    marginTop: -10,
+    fontSize: 30,
+    color: "white",
+    fontWeight: "500",
   },
   tinyText: {
-    fontSize: 20,
+    marginTop: -5,
+    fontSize: 25,
+    color: "white",
+    fontWeight: "500",
   },
 
 });
