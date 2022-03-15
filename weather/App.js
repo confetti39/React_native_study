@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
-import { View, Dimensions, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, Dimensions, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // const SCREEN_WIDTH = Dimensions.get('window').width; 윗 코드와 같은 의미임
 // console.log(SCREEN_WIDTH); // 작동하는 휴대폰의 스크린 사이즈를 알 수 있음 height, width
+const API_KEY = "f1596d4ace391aeaf44396b0bc4b4f9a"; //not secure
 
 export default function App() {
   const [city, setCity] = useState("Loading...");
-  const [location, setLocation] = useState();
+  const [days, setDays] = useState([]);
   const [ok, setOk] = useState(true);
-  const ask = async () => {
+  const getWeather = async () => {
     const { granted } = await Location.requestForegroundPermissionsAsync();
     if (!granted) {
       setOk(false);
@@ -18,9 +19,13 @@ export default function App() {
     const { coords: { latitude, longitude } } = await Location.getCurrentPositionAsync({ accuracy: 5 });
     const location = await Location.reverseGeocodeAsync({ latitude, longitude }, { useGoogleMaps: false });
     setCity(location[0].city);
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alert&appid=${API_KEY}&units=metric`)
+    const json = await response.json();
+    console.log(json.daily);
+    setDays(json.daily);
   }
   useEffect(() => {
-    ask();
+    getWeather();
   }, []);
 
 
@@ -36,24 +41,20 @@ export default function App() {
         contentContainerStyle={styles.weather} // ScrollView는 style이 아니라 contentContainerStyle로 style 지정해 주어야 함
       // 이런 props는 reactnative.dev에 component props에서 찾으면 됨
       >
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-      </ScrollView>
-    </View>
+        {days.length === 0
+          ? (<View style={styles.day}><ActivityIndicator color="white" style={{ marginTop: 10 }} size="large" /></View>)
+          : (
+            days.map((day, index) => (
+              < View key={index} style={styles.day} >
+                <Text style={styles.temp}>{parseFloat(day.temp.day).toFixed(1)}</Text>
+                <Text style={styles.description}>{day.weather[0].main}</Text>
+                <Text style={styles.tinyText}>{day.weather[0].description}</Text>
+              </View>
+            ))
+          )
+        }
+      </ScrollView >
+    </View >
 
   );
 }
@@ -90,6 +91,9 @@ const styles = StyleSheet.create({
   description: {
     marginTop: -30,
     fontSize: 60,
+  },
+  tinyText: {
+    fontSize: 20,
   },
 
 });
