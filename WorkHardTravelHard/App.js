@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Fontisto } from '@expo/vector-icons';
 import { theme } from './color';
 const STORAGE_KEY = "@toDos";
 
@@ -22,7 +23,7 @@ export default function App() {
     setToDos(JSON.parse(s));
   };
   const addToDo = async () => {
-    if (text === "") return
+    if (text === "") return // 공백이면 아무 일도 일어나지 않음
     // const newToDos = Object.assign({}, toDos, { [Date.now()]: { text, work: working } })
     const newToDos = { ...toDos, [Date.now()]: { text, working } }
     setToDos(newToDos);
@@ -68,7 +69,9 @@ export default function App() {
             toDos[key].working === working ? (
               <View style={styles.toDo} key={key}>
                 <Text style={styles.toDoText}>{toDos[key].text}</Text>
-                <TouchableOpacity onPress={() => deleteToDo(key)}><Text>❌</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteToDo(key)}>
+                  <Fontisto name="trash" size={18} color={theme.grey} />
+                </TouchableOpacity>
               </View>)
               : null
           ))}
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   toDo: {
-    backgroundColor: theme.grey,
+    backgroundColor: theme.toDoBg,
     marginBottom: 10,
     paddingVertical: 20,
     paddingHorizontal: 20,
