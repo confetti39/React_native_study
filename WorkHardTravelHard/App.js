@@ -5,22 +5,38 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Fontisto } from '@expo/vector-icons';
 import { theme } from './color';
 const STORAGE_KEY = "@toDos";
+const WORKING = "@working";
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
 
-  useEffect(() => { loadToDos() }, []);
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  useEffect(() => {
+    console.log("working", working);
+    loadToDos()
+  }, [working]);
+
+  const work = async () => {
+    setWorking(true);
+    await AsyncStorage.setItem(WORKING, JSON.stringify(true));
+
+  };
+  const travel = async () => {
+    setWorking(false);
+    await AsyncStorage.setItem(WORKING, JSON.stringify(false));
+
+  };
   const onChangeText = (payload) => setText(payload);
   const saveToDos = async (toSave) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   };
   const loadToDos = async () => {
     const s = await AsyncStorage.getItem(STORAGE_KEY);
+    const w = await AsyncStorage.getItem(WORKING);
     setToDos(JSON.parse(s));
+    setWorking(JSON.parse(w));
+    console.log("loadToDo", JSON.parse(w));
   };
   const addToDo = async () => {
     if (text === "") return // 공백이면 아무 일도 일어나지 않음
@@ -43,7 +59,7 @@ export default function App() {
       },
     ]);
   };
-  console.log(toDos);
+  // console.log(toDos);
 
   return (
     <View style={styles.container}>
