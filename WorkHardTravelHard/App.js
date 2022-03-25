@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Fontisto, Foundation, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from './color';
@@ -93,6 +93,7 @@ export default function App() {
         onChangeText={onChangeText}
         value={text}
         returnKeyType="done"
+        placeholderTextColor={theme.grey}
         placeholder={working ? "Add a To Do" : "Where do you want to go?"}
         style={styles.input} />
       <ScrollView>
@@ -101,14 +102,16 @@ export default function App() {
             toDos[key].working === working ? (
               <View style={styles.toDo} key={key}>
                 <View style={styles.flexStart}>
-                  <TouchableOpacity style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
+                  <Pressable style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
                     {
                       !toDos[key].completed
                         ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
                         : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
                     }
-                  </TouchableOpacity>
-                  <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                  </Pressable>
+                  <Text style={!toDos[key].completed
+                    ? styles.toDoText
+                    : { ...styles.toDoText, color: theme.grey, textDecorationLine: "line-through" }}>{toDos[key].text}</Text>
                 </View>
 
                 <View style={styles.flexEnd}>
@@ -121,9 +124,10 @@ export default function App() {
                 </View>
               </View>)
               : null
-          ))}
-      </ScrollView>
-    </View>
+          ))
+        }
+      </ScrollView >
+    </View >
   );
 }
 
@@ -145,12 +149,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   input: {
-    backgroundColor: "white",
-    paddingVertical: 15,
+    // backgroundColor: "white",
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 30,
+    borderRadius: 10,
     marginVertical: 20,
-    fontSize: 18,
+    borderBottomWidth: 2,
+    borderBottomColor: theme.grey,
+    fontSize: 16,
+    color: "white",
   },
   toDo: {
     backgroundColor: theme.toDoBg,
