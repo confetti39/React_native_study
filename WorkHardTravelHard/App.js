@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Fontisto } from '@expo/vector-icons';
+import { Fontisto, Foundation, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from './color';
 const STORAGE_KEY = "@toDos";
 const WORKING = "@working";
@@ -20,12 +20,10 @@ export default function App() {
   const work = async () => {
     setWorking(true);
     await AsyncStorage.setItem(WORKING, JSON.stringify(true));
-
   };
   const travel = async () => {
     setWorking(false);
     await AsyncStorage.setItem(WORKING, JSON.stringify(false));
-
   };
   const onChangeText = (payload) => setText(payload);
   const saveToDos = async (toSave) => {
@@ -41,7 +39,7 @@ export default function App() {
   const addToDo = async () => {
     if (text === "") return // 공백이면 아무 일도 일어나지 않음
     // const newToDos = Object.assign({}, toDos, { [Date.now()]: { text, work: working } })
-    const newToDos = { ...toDos, [Date.now()]: { text, working } }
+    const newToDos = { ...toDos, [Date.now()]: { text, working, completed: false } }
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
@@ -59,7 +57,25 @@ export default function App() {
       },
     ]);
   };
-  // console.log(toDos);
+  // const modifyToDo = (key) => {
+
+  // }
+  const completeToDo = async (key) => {
+    if (!toDos[key].completed) {
+      const newToDos = { ...toDos };
+      newToDos[key].completed = true;
+      setToDos(newToDos);
+      await saveToDos(newToDos);
+    }
+    else {
+      const newToDos = { ...toDos };
+      newToDos[key].completed = false;
+      setToDos(newToDos);
+      await saveToDos(newToDos);
+    }
+    console.log(toDos[key].completed);
+  }
+  console.log(toDos);
 
   return (
     <View style={styles.container}>
@@ -84,10 +100,25 @@ export default function App() {
           Object.keys(toDos).map((key) => (
             toDos[key].working === working ? (
               <View style={styles.toDo} key={key}>
-                <Text style={styles.toDoText}>{toDos[key].text}</Text>
-                <TouchableOpacity onPress={() => deleteToDo(key)}>
-                  <Fontisto name="trash" size={18} color={theme.grey} />
-                </TouchableOpacity>
+                <View style={styles.flexStart}>
+                  <TouchableOpacity style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
+                    {
+                      !toDos[key].completed
+                        ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
+                        : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
+                    }
+                  </TouchableOpacity>
+                  <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                </View>
+
+                <View style={styles.flexEnd}>
+                  <TouchableOpacity style={{ marginRight: 20 }} onPress={() => modifyToDo(key)}>
+                    <Foundation name="pencil" size={18} color={theme.grey} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => deleteToDo(key)}>
+                    <Fontisto name="trash" size={18} color={theme.grey} />
+                  </TouchableOpacity>
+                </View>
               </View>)
               : null
           ))}
@@ -129,11 +160,19 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   toDoText: {
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  flexStart: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
+  flexEnd: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
 });
