@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Fontisto, Foundation, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Fontisto, Foundation, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { theme } from './color';
 const STORAGE_KEY = "@toDos";
 const WORKING = "@working";
@@ -11,6 +11,8 @@ export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+  const [edited, setEdited] = useState(false);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     console.log("working", working);
@@ -26,6 +28,7 @@ export default function App() {
     await AsyncStorage.setItem(WORKING, JSON.stringify(false));
   };
   const onChangeText = (payload) => setText(payload);
+  const onChangeEditText = (payload) => setText(payload);
   const saveToDos = async (toSave) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   };
@@ -57,9 +60,17 @@ export default function App() {
       },
     ]);
   };
-  // const modifyToDo = (key) => {
+  const editToDo = () => {
+    setEdited(true);
+  }
+  const editBtnSubmit = async (key) => {
+    const newToDos = { ...toDos };
+    newToDos[key].text = editText;
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+    setEdited(false);
+  }
 
-  // }
   const completeToDo = async (key) => {
     if (!toDos[key].completed) {
       const newToDos = { ...toDos };
@@ -99,31 +110,89 @@ export default function App() {
       <ScrollView>
         {
           Object.keys(toDos).map((key) => (
-            toDos[key].working === working ? (
-              <View style={styles.toDo} key={key}>
-                <View style={styles.flexStart}>
-                  <Pressable style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
-                    {
-                      !toDos[key].completed
-                        ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
-                        : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
-                    }
-                  </Pressable>
-                  <Text style={!toDos[key].completed
-                    ? styles.toDoText
-                    : { ...styles.toDoText, color: theme.grey, textDecorationLine: "line-through" }}>{toDos[key].text}</Text>
-                </View>
+            !toDos[key].completed ? (
+              edited ? (toDos[key].working === working ? ( //완료되지 않은 todo중 수정 상태인 todo
+                <View style={styles.toDo} key={key}>
+                  <View style={styles.flexStart}>
+                    <Pressable style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
+                      {
+                        !toDos[key].completed
+                          ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
+                          : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
+                      }
+                    </Pressable>
+                    <TextInput
+                      // onSubmitEditing={editBtnSubmit}
+                      value={editText}
+                      returnKeyType="done"
+                      placeholder="Edit"
+                      placeholderTextColor={theme.grey}
+                      onChangeText={onChangeEditText}
+                    />
+                  </View>
 
-                <View style={styles.flexEnd}>
-                  <TouchableOpacity style={{ marginRight: 20 }} onPress={() => modifyToDo(key)}>
-                    <Foundation name="pencil" size={18} color={theme.grey} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteToDo(key)}>
-                    <Fontisto name="trash" size={18} color={theme.grey} />
-                  </TouchableOpacity>
-                </View>
-              </View>)
-              : null
+                  <View style={styles.flexEnd}>
+                    <TouchableOpacity style={{ marginRight: 20 }} onPress={() => editBtnSubmit(key)}>
+                      <AntDesign name="enter" size={18} color={theme.grey} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => deleteToDo(key)}>
+                      <Fontisto name="trash" size={18} color={theme.grey} />
+                    </TouchableOpacity>
+                  </View>
+                </View>)
+                : null)
+                : //완료되지 않은 Todo중 edit 상태가 아닌 것
+                (toDos[key].working === working ? (
+                  <View style={styles.toDo} key={key}>
+                    <View style={styles.flexStart}>
+                      <Pressable style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
+                        {
+                          !toDos[key].completed
+                            ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
+                            : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
+                        }
+                      </Pressable>
+                      <Text style={!toDos[key].completed
+                        ? styles.toDoText
+                        : { ...styles.toDoText, color: theme.grey, textDecorationLine: "line-through" }}>{toDos[key].text}</Text>
+                    </View>
+
+                    <View style={styles.flexEnd}>
+                      <TouchableOpacity style={{ marginRight: 20 }} onPress={() => editToDo()}>
+                        <Foundation name="pencil" size={18} color={theme.grey} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => deleteToDo(key)}>
+                        <Fontisto name="trash" size={18} color={theme.grey} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>)
+                  : null)
+
+            ) : ( //
+              toDos[key].working === working ? (
+                <View style={styles.toDo} key={key}>
+                  <View style={styles.flexStart}>
+                    <Pressable style={{ marginRight: 20 }} onPress={() => completeToDo(key)}>
+                      {
+                        !toDos[key].completed
+                          ? (<MaterialCommunityIcons name="checkbox-blank-outline" size={18} color={theme.grey} />)
+                          : (<MaterialCommunityIcons name="checkbox-marked-outline" size={18} color={theme.grey} />)
+                      }
+                    </Pressable>
+                    <Text style={!toDos[key].completed
+                      ? styles.toDoText
+                      : { ...styles.toDoText, color: theme.grey, textDecorationLine: "line-through" }}>{toDos[key].text}</Text>
+                  </View>
+
+                  <View style={styles.flexEnd}>
+                    <TouchableOpacity onPress={() => deleteToDo(key)}>
+                      <Fontisto name="trash" size={18} color={theme.grey} />
+                    </TouchableOpacity>
+                  </View>
+                </View>)
+                : null
+            )
+
           ))
         }
       </ScrollView >
